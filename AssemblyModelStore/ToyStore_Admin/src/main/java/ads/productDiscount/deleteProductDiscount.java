@@ -1,0 +1,85 @@
+package ads.productDiscount;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import ads.objects.ProductDiscount;
+import ads.objects.RoleObject;
+
+/**
+ * Servlet implementation class deleteProductDiscount
+ */
+@WebServlet("/api/deleteProductDiscount")
+public class deleteProductDiscount extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public deleteProductDiscount() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		response.getWriter().append("Served at: ").append(request.getContextPath());
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		request.setCharacterEncoding("UTF-8");
+		response.setContentType("text/html; charset=UTF-8");
+		HttpSession session=request.getSession();
+		RoleObject ro= (RoleObject) session.getAttribute("role");
+		if (ro!=null && "Quản trị viên".equals(ro.getRole_name())) {
+			String[] productDiscountIds = request.getParameterValues("selectedProductIds");
+			
+			
+			if (productDiscountIds!=null) {
+				 ArrayList<ProductDiscount> removeProductDiscounts = new ArrayList<>();
+				 
+				 for (int i = 0; i < productDiscountIds.length; i++) {
+					ProductDiscount pd=new ProductDiscount();
+					pd.setPd_id(Integer.parseInt(productDiscountIds[i]));
+					removeProductDiscounts.add(pd);
+				}
+				 
+				 productDiscountModel pdm=new productDiscountModel();
+				 boolean delResult=pdm.delProductDiscount(removeProductDiscounts);
+				 
+				 if(delResult) {
+					 session.setAttribute("flash_message", "Bỏ khuyến mãi thành công");
+					 session.setAttribute("flash_type", "success");
+					 response.sendRedirect(request.getContextPath() + "/page?view=discount");
+				 }else {
+					 session.setAttribute("flash_message", "Bỏ khuyến mãi không thành công");
+					 session.setAttribute("flash_type", "danger");
+					 response.sendRedirect(request.getContextPath() + "/page?view=discount");
+				}
+			} else {
+				session.setAttribute("flash_message", "Bạn chưa chọn sản phẩm để bỏ");
+				session.setAttribute("flash_type", "warning");
+				response.sendRedirect(request.getContextPath() + "/page?view=discount");
+			}
+		} else {
+			session.setAttribute("flash_message", "Bạn không được phép sử dụng chức năng này");
+            session.setAttribute("flash_type", "warning");
+            response.sendRedirect(request.getContextPath() + "/page?view=discount");
+		}
+	}
+
+}
